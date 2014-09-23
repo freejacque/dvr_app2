@@ -2,7 +2,7 @@ class App < ApplicationController
   # session NEW
   get('/') do
       if session[:current_user] # if there is a user set in the session
-        redirect to("/viewers/#{session[:current_user][:id]}")
+        redirect to("/viewers/#{session[:current_id]}")
       else
         render(:erb, :'session/new')
       end
@@ -31,8 +31,8 @@ class App < ApplicationController
       if viewer.name == params[:user_name]
         if viewer.password == BCrypt::Engine.hash_secret(params[:password], viewer.salt)
         session[:current_user] = params[:user_name]
-        id = viewer.id
-        redirect to("/viewers/#{id}")
+        session[:current_id] = viewer.id
+        redirect to("/")
         else
         flash[:error] = "Incorrect password!"
         redirect to('/')
