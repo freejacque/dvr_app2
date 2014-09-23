@@ -28,13 +28,15 @@ class App < ApplicationController
   post('/login') do
     viewers = Viewer.all
     viewers.each do |viewer|
-      if viewer.name == params[:user_name] &&
-        viewer.password == BCrypt::Engine.hash_secret(params[:password], viewer.salt)
+      if viewer.name == params[:user_name]
+        if viewer.password == BCrypt::Engine.hash_secret(params[:password], viewer.salt)
         session[:current_user] = params[:user_name]
-        redirect to('/')
-      else
+        id = viewer.id
+        redirect to("/viewers/#{id}")
+        else
         flash[:error] = "Incorrect password!"
         redirect to('/')
+        end
       end
     end
   end
