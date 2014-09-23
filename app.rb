@@ -1,11 +1,11 @@
 class App < ApplicationController
   # session NEW
   get('/') do
-    if session[:current_user] # if there is a user set in the session
-      redirect to("/viewers/#{session[:current_user][:id]}")
-    else
-      render(:erb, :'session/new')
-    end
+      if session[:current_user] # if there is a user set in the session
+        redirect to("/viewers/#{session[:current_user][:id]}")
+      else
+        render(:erb, :'session/new')
+      end
   end
 
   # session CREATE
@@ -23,6 +23,22 @@ class App < ApplicationController
       redirect to("/viewers/#{current_user_id}")
     end
   end
+
+  # password encryption
+  post('/login') do
+    viewers = Viewer.all
+    viewers.each do |viewer|
+      if viewer.name == params[:user_name] &&
+        viewer.password == BCrypt::Engine.hash_secret(params[:password], viewer.salt)
+        session[:current_user] = params[:user_name]
+        redirect to('/')
+      else
+        flash[:error] = "Incorrect password!"
+        redirect to('/')
+      end
+    end
+  end
+
 
   # session DELETE
   delete('/session') do
@@ -45,7 +61,9 @@ class App < ApplicationController
   end
 
   post('/viewers') do
-    new_viewer = Viewer.create(params)
+    salt = BCrypt::Engine.generate_salt
+    password = BCrypt::Engine.hash_secret(params[:password], salt)
+    new_viewer = Viewer.create(name: params[:name], salt: salt, password: password)
     id = new_viewer.id
     flash[:notice] = "Thanks for signing up"
     redirect to("/viewers/#{id}")
