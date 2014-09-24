@@ -1,6 +1,7 @@
 <header>
   <p><a href="/">Go home</a></p>
   <p>Welcome, <%= @viewer.name %></p>
+  <%= flash[:notice] %>
   <p><form method="POST" action="/session">
     <input type="hidden" name="_method" value="DELETE" />
     <input type="submit" value="Logout" />
@@ -12,3 +13,14 @@
   <p><button>See Scheduled Recordings</button></p>
   <p><button>Watch Recorded Shows</button></p>
 </div>
+
+<form action="/viewers/<%= @viewer.id %>/edit" method="GET">
+  <input type="submit" value="Edit Profile" />
+</form>
+
+<form action="/viewers/<%= @viewer.id %>" method="DELETE">
+  <input type="hidden" method="DELETE" value="_method" />
+  <input type="submit" value="Delete Profile" />
+</form>
+
+

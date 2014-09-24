@@ -1,11 +1,11 @@
 class App < ApplicationController
   # session NEW
   get('/') do
-    if session[:current_user] # if there is a user set in the session
-      redirect to("/viewer/#{session[:current_user][:id]}")
-    else
-      render(:erb, :'session/new')
-    end
+      if session[:current_user] # if there is a user set in the session
+        redirect to("/viewers/#{session[:current_id]}")
+      else
+        render(:erb, :'session/new')
+      end
   end
 
   # session CREATE
@@ -20,7 +20,24 @@ class App < ApplicationController
       # add a user to the session hash
       current_user_id = user.id
       session[:current_user]  = {id: current_user_id}
-      redirect to("/viewer/#{current_user_id}")
+      redirect to("/viewers/#{current_user_id}")
+    end
+  end
+
+  # password encryption
+  post('/login') do
+    viewers = Viewer.all
+    viewers.each do |viewer|
+      if viewer.name == params[:user_name]
+        if viewer.password == BCrypt::Engine.hash_secret(params[:password], viewer.salt)
+        session[:current_user] = params[:user_name]
+        session[:current_id] = viewer.id
+        redirect to("/")
+        else
+        flash[:error] = "Incorrect password!"
+        redirect to('/')
+        end
+      end
     end
   end
 
@@ -31,9 +48,42 @@ class App < ApplicationController
     redirect to('/')
   end
 
-  # viewer SHOW
-  get('/viewer/:id') do
-    @viewer = Viewer.find(id: params[:id])
-    render(:erb, :'viewer/show')
+  get('/viewers/new') do
+    render(:erb, :"viewers/new")
   end
+
+  # viewer SHOW
+  get('/viewers/:id') do
+    @viewer = Viewer.find(id: params[:id])
+    render(:erb, :'viewers/show')
+  end
+
+  get('/viewers/:id/edit') do
+    @viewer = Viewer.find(id: params[:id])
+    render(:erb, :"viewers/edit")
+  end
+
+  delete('/viewers/:id') do
+    viewer = Viewer.find(id: params[:id])
+    viewer.delete
+    session[:current_user] = nil
+    redirect to('/')
+  end
+
+  put('/viewers/:id') do
+    @viewer = Viewer.find(id: params[:id])
+    @viewer.name = params[:user_name]
+    @viewer.save
+    redirect to("/viewers/#{params[:id]}")
+  end
+
+  post('/viewers') do
+    salt = BCrypt::Engine.generate_salt
+    password = BCrypt::Engine.hash_secret(params[:password], salt)
+    new_viewer = Viewer.create(name: params[:name], salt: salt, password: password)
+    id = new_viewer.id
+    flash[:notice] = "Thanks for signing up"
+    redirect to("/viewers/#{id}")
+  end
+
 end

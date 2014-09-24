@@ -1,0 +1,8 @@
+<h1> Edit your profile </h1>
+
+<form action="/viewers/<%= @viewer.id %>" method="POST" >
+  <label for="name">Name:</label>
+  <input type="text" name="user_name" id="name" placeholder="<%= @viewer.name %>" /><br/>
+  <input type="hidden" method="PUT" value="_method" />
+  <input type="submit" value="Save Changes" />
+</form>
